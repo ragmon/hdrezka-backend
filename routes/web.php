@@ -2,6 +2,7 @@
 
 /** @var \Laravel\Lumen\Routing\Router $router */
 
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -16,3 +17,9 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
+$router->post('/search', ['as' => 'search', 'uses' => 'SearchController@query']);
+$router->get('/search/{requestId}', ['as' => 'search_result', 'uses' => 'SearchController@result']);
+
+$router->post('/page', ['as' => 'page', 'uses' => 'PageController@query']);
+$router->get('/page/{pageId}', ['as' => 'page_result', 'uses' => 'PageController@result']);
