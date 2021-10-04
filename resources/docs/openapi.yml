@@ -1,0 +1,232 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "HDRezka backend API"
+  contact:
+    email: "arthur.ragimov@gmail.com"
+host: "localhost"
+basePath: "/"
+schemes:
+- "https"
+- "http"
+paths:
+  /search:
+    post:
+      tags:
+      - "search"
+      summary: "Запрос на поиск"
+      description: "Выполняет запрос поиска на сайт hdrezka, парсит страницу поиска и отдаёт json ответ с результатами поиска"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: ""
+        required: true
+        schema:
+          type: object
+          properties:
+            query:
+              type: string
+              title: Строка поиска
+              example: Название фильма
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/SearchRequest'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/UnprocessableEntity'
+  /search/{searchRequestId}:
+    get:
+      tags:
+        - search
+      summary: Получение данных запроса поиска по его ID
+      description: Возвращает данные запроса поиска на hdrezka
+      produces:
+      - "application/json"
+      parameters:
+      - name: "searchRequestId"
+        in: "path"
+        description: ID запроса поиска
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SearchRequest"
+        "404":
+          description: Not Found
+  /page:
+    post:
+      tags:
+      - "page"
+      summary: "Запрос на получение видео со страницы фильма"
+      description: "Выполняет парсинг страницы с фильмом и возвращает результат в json"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: ""
+        required: true
+        schema:
+          type: object
+          properties:
+            search_request_id:
+              type: integer
+              format: "int64"
+              description: ID запроса на поиск
+              example: 1
+            url:
+              type: string
+              description: Полная ссылка на страницу фильма (URL)
+              example: "https://rezka.ag/films/drama/39111-ded-privet-2018.html"
+            type:
+              type: string
+              description: Тип ресурса
+              enum:
+              - films
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/PageRequest'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/UnprocessableEntity'
+  /page/{pageRequestId}:
+    get:
+      tags:
+        - page
+      summary: Получение данных запроса страница по её ID
+      description: Возвращает данные запроса страницы на hdrezka
+      produces:
+      - "application/json"
+      parameters:
+      - name: "pageRequestId"
+        in: "path"
+        description: ID запроса страницы
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/PageRequest"
+        "404":
+          description: Not Found
+definitions:
+  UnprocessableEntity:
+    type: array
+    items:
+      type: object
+      properties:
+        field:
+          type: array
+          items:
+            type: string
+            example: The field is required.
+  SearchRequest:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      query:
+        type: "string"
+        title: Строка поиска
+      payload:
+        $ref: '#/definitions/SearchRequestPayload'
+      status:
+        type: "string"
+        description: "Статус запроса на поиск"
+        enum:
+        - "created"
+        - "processing"
+        - "done"
+        - "error"
+      created_at:
+        type: "string"
+        example: "2021-10-03T22:00:07.000000Z"
+      updated_at:
+        type: "string"
+        example: "2021-10-03T22:00:07.000000Z"
+    xml:
+      name: "Order"
+  SearchRequestItem:
+    type: object
+    properties:
+      url:
+        type: string
+        description: Ссылка на фильм на сайте hdrezka
+        example: https://rezka.ag/films/fantasy/41834-snova-privet-1987.html
+      name:
+        type: string
+        description: Название фильма
+        example: Снова привет
+      type:
+        type: string
+        description: Тип ресурса (на данный момент поддерживается только "films")
+        example: films
+        enum:
+        - films
+      image:
+        type: string
+        description: Ссылка на изображение постера
+        example: https://static.hdrezka.ac/i/2021/9/19/r664889dc807fud75o25d.jpg
+      addition:
+        type: string
+        description: Дополнительная информация по фильму
+        example: 1987, США, Фэнтези
+  SearchRequestPayload:
+    type: array
+    items:
+      $ref: '#/definitions/SearchRequestItem'
+  PageRequest:
+    type: object
+    properties:
+      search_request_id:
+        type: integer
+        format: "int64"
+        description: ID запроса на поиск
+      url:
+        type: string
+        description: Ссылка на фильм
+        example: https://rezka.ag/films/fantasy/41834-snova-privet-1987.html
+      type:
+        type: string
+        description: Тип ресурса (на данный момент поддерживается только "films")
+        example: films
+        enum:
+        - films
+      payload:
+        $ref: '#/definitions/PageRequestPayload'
+      status:
+        type: string
+        description: Статус запроса на парсинг страницы с фильмом
+  PageRequestPayload:
+    type: array
+    items:
+      $ref: '#/definitions/PageRequestItem'
+  PageRequestItem:
+    type: object
+    properties:
+      resolution:
+        type: string
+        description: Разрешение видео
+        example: "360p"
+      url:
+        type: string
+        description: Прямая ссылка на видео
+        example: "https://stream.voidboost.cc/3/7/6/9/8/8/ebbad219ee853a9ef1e68cdf9df87381:2021100517:2e179457-952a-4834-a712-0fcaa5358126/bie1b.mp4"

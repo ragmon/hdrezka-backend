@@ -18,6 +18,10 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+$router->get('/doc/swagger', function () {
+    return view('docs.swagger');
+});
+
 $router->post('/search', ['as' => 'search', 'uses' => 'SearchController@query']);
 $router->get('/search/{requestId}', ['as' => 'search_result', 'uses' => 'SearchController@result']);
 
